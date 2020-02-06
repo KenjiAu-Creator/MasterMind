@@ -1,7 +1,12 @@
 class MasterMind
   def initialize
     intro
-    @players = [Player.new, Computer.new]
+    puts "How many players (1 or 2)?"
+    players_choice = gets.chomp.to_i
+    case players_choice
+    when 1
+        @players = [Player.new, Computer.new]
+    end
     init_board
     @short_comp_code = shorten_code(@players[1].code) 
     play_game
