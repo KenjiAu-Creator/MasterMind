@@ -3,7 +3,7 @@ class MasterMind
     intro
     game_choices
     init_board
-    play_game
+    play_game(@opponent)
   end
 
   def intro
@@ -27,19 +27,21 @@ class MasterMind
     players_choice = gets.chomp.to_i
     case players_choice
     when 1
-        @players = [Player.new, Computer.new]
-        puts "Do you wish to be the code breaker or the code maker?"
-        player_choice = gets.chomp
-        case player_choice
-        when "code breaker"
-          @code = @players[1].code
-          @code_breaker = @players[0]
-        when "code maker"
-          @code = @players[0].make_code
-          @code_breaker = @players[1]
-        end
+      @opponent = "computer"
+      @players = [Player.new, Computer.new]
+      puts "Do you wish to be the code breaker or the code maker?"
+      player_choice = gets.chomp
+      case player_choice
+      when "code breaker"
+        @code = @players[1].code
+        @code_breaker = @players[0]
+      when "code maker"
+        @code = @players[0].make_code
+        @code_breaker = @players[1]
+      end
     when 2
-      @players = [Human.new, Human.new]
+      @opponent = "human"
+      @players = [Player.new, Player.new]
       puts "Is player 1 the code maker or the code breaker?"
       player_choice = gets.chomp
       case player_choice
@@ -65,20 +67,75 @@ class MasterMind
     puts @board
   end
 
-  def play_game
-    12.times do |i|
-      puts "Attempt number: #{i+1}"
-      if (i == 11)
-        puts "Code maker wins! The code was #{@code}"
-        break
-      elsif (win_condition(@code_breaker.guess, @code))
-        break
-      else
-        puts "Wrong!"
-        update_board(i)
-        hints(@code_breaker.attempts[i],@code)
+  def play_game(opponent)
+    if opponent == "human"
+      12.times do |i|
+        @guess = @code_breaker.guess
+        puts "Attempt number: #{i+1}"
+        if (i == 11)
+          puts "Code maker wins! The code was #{@code}"
+          break
+        elsif (win_condition(@guess, @code))
+          break
+        else
+          update_board(i)
+          puts "Incorrect!"
+          hints(@code_breaker.attempts[i],@code)
+        end
+      end
+    elsif opponent == "computer"
+      12.times do |i|
+        if (i == 0)
+          @guess = @code_breaker.guess.clone
+        elsif (i == 11)
+          puts "Code maker wins! The code was #{@code}"
+          break
+        end
+
+        if win_condition(@guess, @code)
+          puts "Code Breaker wins!"
+          break
+        else
+          update_board(i)
+          puts "Incorrect!"
+          @last_hint = hints(@code_breaker.attempts[i], @code)
+          if @code_breaker === @players[1]
+            @guess = update_guess(@code_breaker.attempts[i], @last_hint)
+          else
+            @guess = @code_breaker.guess
+          end
+        end
       end
     end
+  end
+
+  def update_guess(guess, last_hint)
+    new_guess = Array.new
+    guess = guess.split(" ")
+    puts guess.inspect
+    for i in 0..3
+      puts i
+      if last_hint[i] == "Black"
+        puts "Hihi"
+        new_guess[i] = guess[i]
+      else
+        computer_rand = rand(4)
+        if computer_rand == 0
+          new_guess[i] = ("red")
+        elsif computer_rand == 1
+          new_guess[i] = ("blue")
+        elsif computer_rand == 2
+          new_guess[i] = ("green")
+        elsif computer_rand == 3
+          new_guess[i] = ("yellow")
+        end
+      end
+    end
+    puts "This is the new_guess"
+    puts new_guess.inspect
+    new_guess = new_guess.join(" ")
+    @code_breaker.attempts.push(new_guess)
+    return new_guess
   end
 
   def win_condition(guess, code)
@@ -111,31 +168,41 @@ class MasterMind
     puts "A black key peg indicates correct color and position."
     puts "A white key peg indicates correct color but incorrect position."
     
-    @hint_row = ["","","",""]
+    @hint_row = Array.new
     code_copy = shorten_code(code)
-    guess.gsub!(" ", "")
+
+    # human breaker solution
+    guess_copy = guess.gsub(" ", "")
+    puts "This is the code"
+    puts code_copy
+    puts "This is the guess"
+    puts guess_copy
 
     for i in 0...4
-      if(guess[i].match? code_copy[i])
+      if(guess_copy[i].match? code_copy[i])
         @hint_row[i] = ("Black")
-        guess[i] = " "
+        guess_copy[i] = " "
         code_copy[i] = " "
+      else
+        @hint_row[i] = ""
       end
     end
 
     code_copy.gsub!(" ", "")
-    guess.gsub!(" ", "")
-    guess.each_char do |char|
+
+    guess_copy.each_char do |char|
         if (code_copy.include? char)
-            code_copy.sub!("#{char}", " ")
-            @hint_row[guess.index(char)] = ("white")
+            code_copy.sub!("#{char}", "")
+            @hint_row[guess_copy.index(char)] = ("White")
         end
     end
     puts @hint_row.inspect
+    return @hint_row
   end
 
   def shorten_code(code)
-    @short_code = code.gsub("red", "R")
+    @short_code = code.downcase
+    @short_code.gsub!("red", "R")
     @short_code.gsub!("blue", "B")
     @short_code.gsub!("green", "G")
     @short_code.gsub!("yellow", "Y")
@@ -149,12 +216,12 @@ class Player
     @code = ""
   end
 
-  def player_guess
+  def guess
     puts "Please enter your guess of four colors for the code:"
     puts "Available colors are: Red, Blue, Green, and Yellow."
-    guess = gets.chomp
-    @attempts.push(guess)
-    return guess
+    player_guess = gets.chomp
+    @attempts.push(player_guess)
+    return player_guess
   end
 
   def make_code
