@@ -1,7 +1,8 @@
 class MasterMind
   def initialize
     intro
-    init_board 
+    game_choices
+    init_board
     play_game
   end
 
@@ -27,9 +28,32 @@ class MasterMind
     case players_choice
     when 1
         @players = [Player.new, Computer.new]
-        @short_comp_code = shorten_code(@players[1].code)
+        puts "Do you wish to be the code breaker or the code maker?"
+        player_choice = gets.chomp
+        case player_choice
+        when "code breaker"
+          @code = @players[1].code
+          @code_breaker = @players[0]
+        when "code maker"
+          @code = @players[0].make_code
+          @code_breaker = @players[1]
+        end
+    when 2
+      @players = [Human.new, Human.new]
+      puts "Is player 1 the code maker or the code breaker?"
+      player_choice = gets.chomp
+      case player_choice
+      when "code breaker"
+        @code = @players[1].make_code
+        @code_breaker = @players[0]
+      when "code maker"
+        @code = @players[0].make_code
+        @code_breaker = @players[1]
+      end
     end
   end
+  
+
   def init_board
     @board = []
 
@@ -44,15 +68,17 @@ class MasterMind
   def play_game
     12.times do |i|
       puts "Attempt number: #{i+1}"
-      if (win_condition(@players[0].player_guess, @players[1].code))
+      if (i == 11)
+        puts "Code maker wins! The code was #{@code}"
+        break
+      elsif (win_condition(@code_breaker.guess, @code))
         break
       else
         puts "Wrong!"
         update_board(i)
-        hints(@players[0].attempts[i],@short_comp_code)
+        hints(@code_breaker.attempts[i],@code)
       end
     end
-    puts "Code maker wins! The code was #{@players[1].code}"
   end
 
   def win_condition(guess, code)
@@ -65,13 +91,13 @@ class MasterMind
   end
 
   def update_board(attempt_number)
-    @players[0].attempts[attempt_number].downcase!
-    @players[0].attempts[attempt_number].gsub!("red", "R")
-    @players[0].attempts[attempt_number].gsub!("blue", "B")
-    @players[0].attempts[attempt_number].gsub!("green", "G")
-    @players[0].attempts[attempt_number].gsub!("yellow", "Y")
+    @code_breaker.attempts[attempt_number].downcase!
+    @code_breaker.attempts[attempt_number].gsub!("red", "R")
+    @code_breaker.attempts[attempt_number].gsub!("blue", "B")
+    @code_breaker.attempts[attempt_number].gsub!("green", "G")
+    @code_breaker.attempts[attempt_number].gsub!("yellow", "Y")
 
-    colors = @players[0].attempts[attempt_number].split(" ")
+    colors = @code_breaker.attempts[attempt_number].split(" ")
     row_num = (22 - 2 * attempt_number)
     4.times do |i|
       @board[row_num].sub!("o", "#{colors[i]}")
@@ -85,22 +111,24 @@ class MasterMind
     puts "A black key peg indicates correct color and position."
     puts "A white key peg indicates correct color but incorrect position."
     
-    @hint_row = []
-    code_copy = code.clone
+    @hint_row = ["","","",""]
+    code_copy = shorten_code(code)
+    guess.gsub!(" ", "")
 
     for i in 0...4
-      if(code[2 * i].match? guess[2 * i])
-        @hint_row.push("Black")
-        guess[2 * i] = " "
-        code_copy[2 * i] = " "
+      if(guess[i].match? code_copy[i])
+        @hint_row[i] = ("Black")
+        guess[i] = " "
+        code_copy[i] = " "
       end
     end
 
+    code_copy.gsub!(" ", "")
     guess.gsub!(" ", "")
     guess.each_char do |char|
         if (code_copy.include? char)
             code_copy.sub!("#{char}", " ")
-            @hint_row.push("white")
+            @hint_row[guess.index(char)] = ("white")
         end
     end
     puts @hint_row.inspect
@@ -111,12 +139,14 @@ class MasterMind
     @short_code.gsub!("blue", "B")
     @short_code.gsub!("green", "G")
     @short_code.gsub!("yellow", "Y")
+    @short_code.gsub!(" ", "")
   end
 end
 
 class Player
   def initialize
     @attempts = []
+    @code = ""
   end
 
   def player_guess
@@ -126,12 +156,21 @@ class Player
     @attempts.push(guess)
     return guess
   end
-  attr_accessor :attempts
+
+  def make_code
+    puts "Please enter your four color secret code. Colors to choose from are:"
+    puts "Red, Blue, Green, and Yellow."
+    @code = gets.chomp
+  end
+
+  attr_accessor :attempts, :code
 end
 
 class Computer
   def initialize
-    @code = computer_code  
+    @code = computer_code 
+    @attempts = []
+    @computer_guess = guess 
   end
 
   def computer_code
@@ -152,9 +191,29 @@ class Computer
     computerPegs = computerPegs.join(" ")
     return computerPegs
   end
-   attr_reader :code
+
+  def guess
+    computer_guess = []
+    4.times do |i|
+      computer_rand = rand(4)
+      if computer_rand == 0
+        computer_guess.push("Red")
+      elsif computer_rand == 1
+        computer_guess.push("Blue")
+      elsif computer_rand == 2
+        computer_guess.push("Green")
+      elsif computer_rand == 3
+        computer_guess.push("Yellow")
+      end
+    end
+
+    computer_guess = computer_guess.join(" ")
+    @attempts.push(computer_guess)
+    return computer_guess
+  end
+
+  attr_reader :code, :attempts, :computer_guess
 end
 
 
 game = MasterMind.new()
-computerPlayer = Computer.new()
