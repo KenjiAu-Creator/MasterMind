@@ -1,9 +1,15 @@
+class Game
+  def initialize
+    @MM = MasterMind.new
+    @MM.intro
+    @MM.game_choices
+    @MM.init_board 
+    @MM.play_game
+  end
+end
+
 class MasterMind
   def initialize
-    intro
-    game_choices
-    init_board 
-    play_game
   end
 
   def intro
@@ -27,7 +33,7 @@ class MasterMind
     num_of_players = gets.chomp.to_i
     case num_of_players
     when 1
-        @players = [Player.new, Computer.new]
+        @players = [Human.new, Computer.new]
         puts "Do you wish to be the code breaker or the code maker?"
         player_choice = gets.chomp
         case player_choice
@@ -39,7 +45,7 @@ class MasterMind
           @code_breaker = @players[1]
         end
     when 2
-      @players = [Player.new, Player.new]
+      @players = [Human.new, Human.new]
       puts "Is player 1 the code maker or the code breaker?"
       player_choice = gets.chomp
       case player_choice
@@ -133,6 +139,7 @@ class MasterMind
         end
     end
     puts @hint_row.inspect
+    @hint = @hint_row
     return @hint_row
   end
 
@@ -143,9 +150,14 @@ class MasterMind
     @short_code.gsub!("yellow", "Y")
     @short_code.gsub!(" ", "")
   end
+
+  attr_reader :hint
 end
 
 class Player
+end
+
+class Human < Player
   def initialize
     @attempts = []
     @code = ""
@@ -169,7 +181,7 @@ class Player
   attr_accessor(:attempts, :code)
 end
 
-class Computer
+class Computer < Player
   def initialize
     @code = computer_code
     @attempts = []
@@ -200,7 +212,9 @@ class Computer
       @last_guess = initial_guess
     else
       puts "Oops"
-      return update_guess(@last_guess, hints)
+      puts @MM.inspect
+      x = gets
+      return update_guess(@last_guess, @MM.hint)
     end
   end
 
@@ -225,7 +239,6 @@ class Computer
   end
 
   def update_guess(last_guess, hints)
-    puts hints
     new_guess = ["", "", "", ""]
     hints.each_with_index do |color, index|
       if color == "Black"
@@ -249,4 +262,4 @@ class Computer
 end
 
 
-game = MasterMind.new()
+game = Game.new()
