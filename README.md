@@ -15,3 +15,5 @@ If there are duplicate colors in the guess, they cannot all be awarded a key peg
 Once feedback is provided, another guess is made; guesses and feedback continue to alternate until either the codebreaker guesses correctly, or twelve incorrect guesses are made. 
 
 
+masterMind was the first attempt.
+masterMind2 is the second attempt after looking at example code. This one has much better organization of code.

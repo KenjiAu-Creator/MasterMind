@@ -98,7 +98,7 @@ class MasterMind
         else
           update_board(i)
           puts "Incorrect!"
-          @last_hint = hints(@code_breaker.attempts[i], @code)
+          @last_hint = hints(@code_breaker.attempts[i], @code).clone
           if @code_breaker === @players[1]
             @guess = update_guess(@code_breaker.attempts[i], @last_hint)
           else
@@ -121,19 +121,20 @@ class MasterMind
       else
         computer_rand = rand(4)
         if computer_rand == 0
-          new_guess[i] = ("red")
+          new_guess[i] = ("R")
         elsif computer_rand == 1
-          new_guess[i] = ("blue")
+          new_guess[i] = ("B")
         elsif computer_rand == 2
-          new_guess[i] = ("green")
+          new_guess[i] = ("G")
         elsif computer_rand == 3
-          new_guess[i] = ("yellow")
+          new_guess[i] = ("Y")
         end
       end
     end
     puts "This is the new_guess"
     puts new_guess.inspect
     new_guess = new_guess.join(" ")
+    puts new_guess
     @code_breaker.attempts.push(new_guess)
     return new_guess
   end
@@ -148,11 +149,11 @@ class MasterMind
   end
 
   def update_board(attempt_number)
-    @code_breaker.attempts[attempt_number].downcase!
-    @code_breaker.attempts[attempt_number].gsub!("red", "R")
-    @code_breaker.attempts[attempt_number].gsub!("blue", "B")
-    @code_breaker.attempts[attempt_number].gsub!("green", "G")
-    @code_breaker.attempts[attempt_number].gsub!("yellow", "Y")
+    # @code_breaker.attempts[attempt_number].downcase!
+    # @code_breaker.attempts[attempt_number].gsub!("red", "R")
+    # @code_breaker.attempts[attempt_number].gsub!("blue", "B")
+    # @code_breaker.attempts[attempt_number].gsub!("green", "G")
+    # @code_breaker.attempts[attempt_number].gsub!("yellow", "Y")
 
     colors = @code_breaker.attempts[attempt_number].split(" ")
     row_num = (22 - 2 * attempt_number)
@@ -169,7 +170,7 @@ class MasterMind
     puts "A white key peg indicates correct color but incorrect position."
     
     @hint_row = Array.new
-    code_copy = shorten_code(code)
+    code_copy = code.gsub(" ", "")
 
     # human breaker solution
     guess_copy = guess.gsub(" ", "")
@@ -198,15 +199,6 @@ class MasterMind
     end
     puts @hint_row.inspect
     return @hint_row
-  end
-
-  def shorten_code(code)
-    @short_code = code.downcase
-    @short_code.gsub!("red", "R")
-    @short_code.gsub!("blue", "B")
-    @short_code.gsub!("green", "G")
-    @short_code.gsub!("yellow", "Y")
-    @short_code.gsub!(" ", "")
   end
 end
 
@@ -246,13 +238,13 @@ class Computer
     4.times do |i|
       peg = rand(4)
       if peg == 0
-        computerPegs[i] = "red"
+        computerPegs[i] = "R"
       elsif peg == 1
-        computerPegs[i] = "blue"
+        computerPegs[i] = "B"
       elsif peg == 2
-        computerPegs[i] = "green"
+        computerPegs[i] = "G"
       elsif peg == 3
-        computerPegs[i] = "yellow"
+        computerPegs[i] = "Y"
       end
     end
     computerPegs = computerPegs.join(" ")
@@ -264,13 +256,13 @@ class Computer
     4.times do |i|
       computer_rand = rand(4)
       if computer_rand == 0
-        computer_guess.push("Red")
+        computer_guess.push("R")
       elsif computer_rand == 1
-        computer_guess.push("Blue")
+        computer_guess.push("B")
       elsif computer_rand == 2
-        computer_guess.push("Green")
+        computer_guess.push("G")
       elsif computer_rand == 3
-        computer_guess.push("Yellow")
+        computer_guess.push("Y")
       end
     end
 
