@@ -142,30 +142,37 @@
       puts "Game over! Code maker wins!"
     end
 
-    #STOP AT COMPUTER GUESSING PLAYER CODE
     def store_computer_guess
       @@guess_hash[@computer.color_choices] = match_message
     end
 
     def computer_guess_play
+      @available_peg_choices = { 0 => "RBGY", 1 => "RBGY", 2  => "RBGY", 3  => "RBGY"}
       while @@guess_count <=12
         if win_condition
           puts "Gave over! Code breaker wins!"
           break
         end
+
         store_computer_guess
         @computer.color_choices = update_guess
         code_compare
         @@guess_count += 1
+
+        if @@guess_count == 12
+          puts "Game over! Code maker wins!"
+        end
       end
     end
 
     def update_guess
-      new_guess = Array.new
+      new_guess = Array.new 
       @hint_colors.each_with_index do |color, index|
         if color == "Black"
           new_guess[index] = @computer.color_choices[index]
         else
+          @available_peg_choices[index].gsub!(color, "")
+          new_random_color = @available_peg_choices[index].split("").sample(1).join("")
           new_guess[index] = new_random_color
         end
       end
@@ -174,12 +181,6 @@
       return new_guess
     end
     
-    def new_random_color
-      availabe_colors = ["R","B","G","Y"]
-      new_color = availabe_colors.sample(1)
-      new_color = new_color.join("")
-    end
-
   end
 
 Game.new
